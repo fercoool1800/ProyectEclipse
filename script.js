@@ -3,17 +3,17 @@ const commands =
 
     help: () => 
     {
-        print("Available commands");
+        alert("Available commands");
     },
 
     observe: () => 
     {
-        print("Observation is the first requirement.");
+        alert("Observation is the first requirement.");
     },
 
     archive: () => 
     {
-        print("Archive unavailable.");
+        alert("Archive unavailable.");
     }
 
 };
