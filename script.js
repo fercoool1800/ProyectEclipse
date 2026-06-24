@@ -1,20 +1,70 @@
+const commands = 
+{
+
+    help: () => 
+    {
+        print("Available commands");
+    },
+
+    observe: () => 
+    {
+        print("Observation is the first requirement.");
+    },
+
+    archive: () => 
+    {
+        print("Archive unavailable.");
+    }
+
+};
 const input = document.getElementById("command");
 
-input.addEventListener("keydown", function(event){
+function mostrarError()
+{
+    const error = document.getElementById("error-message");
+    error.textContent = "UNRECOGNIZED COMMAND";
+    error.style.opacity = "1";
+    error.style.visibility = "visible";
+    error.classList.add("shake");
+    setTimeout(() => 
+    {
 
-    if(event.key === "Enter"){
+        error.classList.remove("shake");
+
+    }, 400);
+
+    setTimeout(() => 
+    {
+
+        error.style.transition = "opacity 1s";
+        error.style.opacity = "0";
+
+    }, 2000);
+
+    setTimeout(() => 
+    {
+
+        error.style.visibility = "hidden";
+        error.style.transition = "";
+
+    }, 2400);
+}
+input.addEventListener("keydown", function(event)
+{
+
+    if(event.key === "Enter")
+    {
 
         let cmd = input.value.trim().toLowerCase();
-
-        if(cmd === "help"){
-            alert("Commands: help, observe");
-        }
-
-        if(cmd === "observe"){
-            alert("Observation is the first requirement.");
+        if(commands[cmd])
+        {
+            commands[cmd]();
+        }   
+        else
+        {
+            mostrarError();
         }
 
         input.value = "";
     }
-
 });

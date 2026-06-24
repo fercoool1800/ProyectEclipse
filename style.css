@@ -1,4 +1,5 @@
-body{
+body
+{
     background:black;
     color:white;
     font-family:Consolas, monospace;
@@ -11,17 +12,111 @@ body{
     align-items:center;
 }
 
-.container{
+.container
+{
     text-align:center;
 }
 
-#terminal{
+.typing-container
+{
+    display:inline-flex;
+}
+
+/* Efecto de escritura */
+.typing
+{
+    overflow:hidden;
+    white-space:nowrap;
+
+    width:0;
+
+    animation:
+        typing 3s steps(16,end) forwards;
+}
+
+/* Efecto de cursor */
+.cursor
+{
+    animation:
+        blink 0.5s infinite;
+}
+
+@keyframes typing
+{
+
+    from
+    {
+        width:0;
+    }
+
+    to
+    {
+        width:16ch;
+    }
+}
+
+@keyframes blink
+{
+
+    50%
+    {
+        opacity:0;
+    }
+}
+
+#terminal
+{
     margin-top:30px;
 }
 
-input{
+/* Efecto de error */
+#error-message
+{
+    color:red;
+    opacity:0;
+    visibility:hidden;
+    margin-top:10px;
+}
+
+.shake
+{
+
+    animation: shake 0.4s;
+}
+@keyframes shake
+{
+
+    0%
+    {
+        transform:translateX(0);
+    }
+
+    25%
+    {
+        transform:translateX(-5px);
+    }
+
+    50%
+    {
+        transform:translateX(5px);
+    }
+
+    75%
+    {
+        transform:translateX(-5px);
+    }
+
+    100%
+    {
+        transform:translateX(0);
+    }
+
+}
+
+input
+{
     background:black;
-    color:white;
+    color:rgb(166, 166, 166);
 
     border:none;
     outline:none;
