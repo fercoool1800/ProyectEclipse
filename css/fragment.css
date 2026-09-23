@@ -1,0 +1,124 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    background: #050505;
+    color: #d8d8d8;
+
+    font-family: "Courier New", Courier, monospace;
+
+    display: flex;
+    justify-content: center;
+
+    min-height: 100vh;
+}
+
+.terminal {
+    width: min(900px, 100%);
+
+    padding: clamp(24px, 5vw, 60px);
+
+    font-size: clamp(14px, 1.8vw, 17px);
+    line-height: 1.65;
+
+    overflow-wrap: break-word;
+}
+
+.line {
+    min-height: 1em;
+    white-space: pre-wrap;
+}
+
+.command {
+    color: #ffffff;
+}
+
+.system {
+    color: #a9a9a9;
+}
+
+.warning {
+    color: #d6d6d6;
+}
+
+.fragment {
+    color: #eeeeee;
+}
+
+.corrupted {
+    display: inline-block;
+
+    animation: corruption 0.12s infinite;
+}
+
+.cursor {
+    display: inline-block;
+
+    margin-top: 8px;
+
+    animation: blink 0.8s steps(1) infinite;
+}
+
+
+/* Cursor */
+
+@keyframes blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
+}
+
+
+/* Corrupción */
+
+@keyframes corruption {
+
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-1px);
+    }
+
+    50% {
+        transform: translateX(1px);
+    }
+
+    75% {
+        transform: translateX(-1px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+
+/* Android / pantallas pequeñas */
+
+@media (max-width: 600px) {
+
+    .terminal {
+        padding: 22px 18px;
+
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+}
