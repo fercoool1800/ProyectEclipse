@@ -1,4 +1,5 @@
 const output = document.getElementById("terminal-output");
+const cursor = document.getElementById("cursor");
 
 let speedMultiplier = 1;
 
@@ -16,8 +17,6 @@ function wait(ms) {
 }
 
 
-const cursor = document.getElementById("cursor");
-
 function createLine(className = "") {
 
     const line = document.createElement("div");
@@ -30,14 +29,56 @@ function createLine(className = "") {
 }
 
 
+// -------------------------
+// SEGUIMIENTO DEL CURSOR
+// -------------------------
 
 function scrollTerminal() {
 
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth"
-    });
+    if (!cursor) return;
 
+    const rect = cursor.getBoundingClientRect();
+
+    /*
+        En móvil dejamos más espacio debajo
+        para las barras del navegador y para
+        que la línea activa respire.
+    */
+
+    const bottomMargin =
+        window.innerWidth <= 600 ? 110 : 80;
+
+    /*
+        Esta es nuestra "línea invisible".
+
+        El cursor puede moverse libremente
+        hasta llegar aquí.
+    */
+
+    const limit =
+        window.innerHeight - bottomMargin;
+
+
+    /*
+        Si el cursor intenta bajar del límite,
+        desplazamos exactamente la diferencia.
+
+        No usamos smooth porque la animación
+        de scroll quedaría retrasada respecto
+        a la escritura.
+    */
+
+    if (rect.bottom > limit) {
+
+        const difference =
+            rect.bottom - limit;
+
+        window.scrollBy({
+            top: difference,
+            behavior: "auto"
+        });
+
+    }
 }
 
 
@@ -45,52 +86,101 @@ function scrollTerminal() {
 // IMPRIMIR TEXTO
 // -------------------------
 
-async function printLine(text = "", className = "", delay = 35) {
+async function printLine(
+    text = "",
+    className = "",
+    delay = 35
+) {
 
     const line = createLine(className);
 
-    // Movemos el cursor a la línea que se está escribiendo
+
+    /*
+        El cursor entra en la línea que
+        estamos escribiendo.
+    */
+
     line.appendChild(cursor);
+
 
     for (const character of text) {
 
-        const charNode = document.createTextNode(character);
+        const charNode =
+            document.createTextNode(character);
 
-        line.insertBefore(charNode, cursor);
+        line.insertBefore(
+            charNode,
+            cursor
+        );
+
+
+        /*
+            Después de cada carácter
+            comprobamos la posición real
+            del cursor.
+
+            Esto también funciona si una
+            línea hace wrap en Android.
+        */
 
         scrollTerminal();
 
         await wait(delay);
     }
 
-    // Al terminar, devolvemos el cursor al final del terminal
+
+    /*
+        Terminada la línea, devolvemos
+        el cursor al final del terminal.
+    */
+
     output.appendChild(cursor);
+
+    scrollTerminal();
 
     return line;
 }
 
 
-// Texto rápido
+// -------------------------
+// TEXTO DEL SISTEMA
+// -------------------------
+
 async function systemLine(text = "") {
 
-    await printLine(text, "system", 8);
+    await printLine(
+        text,
+        "system",
+        8
+    );
 
 }
 
 
-// Comando escrito por la máquina
+// -------------------------
+// COMANDOS
+// -------------------------
+
 async function command(text) {
 
-    await printLine(`> ${text}`, "command", 45);
+    await printLine(
+        `> ${text}`,
+        "command",
+        45
+    );
 
 }
 
 
-// Espacio vacío
+// -------------------------
+// ESPACIO VACÍO
+// -------------------------
+
 function blank() {
 
     createLine();
 
+    scrollTerminal();
 }
 
 
@@ -100,26 +190,57 @@ function blank() {
 
 async function progressBar() {
 
-    const line = createLine("system");
+    const line =
+        createLine("system");
+
+    /*
+        Mientras cambia la barra,
+        ponemos el cursor dentro de
+        esa misma línea.
+    */
+
+    line.appendChild(cursor);
 
     const blocks = 16;
 
+
     for (let i = 0; i <= blocks; i++) {
 
-        const filled = "█".repeat(i);
-        const empty = "░".repeat(blocks - i);
+        const filled =
+            "█".repeat(i);
 
-        const percentage = Math.round((i / blocks) * 100);
+        const empty =
+            "░".repeat(blocks - i);
+
+        const percentage =
+            Math.round(
+                (i / blocks) * 100
+            );
+
+
+        /*
+            Como textContent borraría
+            también el cursor, primero
+            escribimos el contenido y
+            después volvemos a añadirlo.
+        */
 
         line.textContent =
             `DECRYPTING [${filled}${empty}] ${percentage}%`;
 
+        line.appendChild(cursor);
+
         scrollTerminal();
 
-        await wait(120 + Math.random() * 130);
-
+        await wait(
+            120 + Math.random() * 130
+        );
     }
 
+
+    output.appendChild(cursor);
+
+    scrollTerminal();
 }
 
 
@@ -129,43 +250,110 @@ async function progressBar() {
 
 async function observeAnomaly() {
 
-    const line = createLine("fragment");
+    const line =
+        createLine("fragment");
 
-    line.textContent = "But looking and obs▓▓▓▓▓";
+    line.textContent =
+        "But looking and obs▓▓▓▓▓";
+
+    scrollTerminal();
 
     await wait(900);
 
-    await systemLine("> unstable sector detected.");
-    await systemLine("> attempting reconstruction...");
+
+    await systemLine(
+        "> unstable sector detected."
+    );
+
+    await systemLine(
+        "> attempting reconstruction..."
+    );
+
 
     blank();
 
-    const recovery = createLine("corrupted");
 
-    recovery.textContent = "obs▓▓▓▓▓";
+    const recovery =
+        createLine("corrupted");
+
+
+    /*
+        Movemos el cursor a la línea
+        que se está reconstruyendo.
+    */
+
+    recovery.appendChild(cursor);
+
+
+    recovery.textContent =
+        "obs▓▓▓▓▓";
+
+    recovery.appendChild(cursor);
+
+    scrollTerminal();
 
     await wait(500);
 
-    recovery.textContent = "obse▓▓▓";
+
+    recovery.textContent =
+        "obse▓▓▓";
+
+    recovery.appendChild(cursor);
+
+    scrollTerminal();
 
     await wait(500);
 
-    recovery.textContent = "OBSERVE";
+
+    recovery.textContent =
+        "OBSERVE";
+
+    recovery.appendChild(cursor);
+
+    scrollTerminal();
 
     await wait(850);
 
-    recovery.textContent = "obser▓▓";
+
+    recovery.textContent =
+        "obser▓▓";
+
+    recovery.appendChild(cursor);
+
+    scrollTerminal();
 
     await wait(250);
 
-    recovery.textContent = "observing";
 
-    recovery.classList.remove("corrupted");
+    recovery.textContent =
+        "observing";
+
+    recovery.appendChild(cursor);
+
+    recovery.classList.remove(
+        "corrupted"
+    );
+
+    scrollTerminal();
+
+    await wait(300);
+
+
+    output.appendChild(cursor);
+
+    scrollTerminal();
+
 
     blank();
 
-    await systemLine("> reconstruction unstable.");
-    await systemLine("> continuing...");
+
+    await systemLine(
+        "> reconstruction unstable."
+    );
+
+    await systemLine(
+        "> continuing..."
+    );
 
 }
 
@@ -178,9 +366,12 @@ async function printFragment() {
 
     blank();
 
-    await systemLine("[FRAGMENT_001]");
+    await systemLine(
+        "[FRAGMENT_001]"
+    );
 
     blank();
+
 
     await printLine(
         "Eclipse began with a simple idea:",
@@ -188,7 +379,9 @@ async function printFragment() {
         18
     );
 
+
     blank();
+
 
     await printLine(
         "Knowledge is not defined by how much",
@@ -202,7 +395,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "but by what they are willing",
@@ -216,7 +411,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "We believe curiosity has value.",
@@ -224,7 +421,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "That different minds can build",
@@ -238,7 +437,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "That an idea should be questioned,",
@@ -252,7 +453,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "And that knowledge becomes more valuable",
@@ -266,13 +469,20 @@ async function printFragment() {
         12
     );
 
+
     blank();
 
-    await systemLine("[DATA CORRUPTED]");
+
+    await systemLine(
+        "[DATA CORRUPTED]"
+    );
+
 
     await wait(700);
 
+
     blank();
+
 
     await printLine(
         "We are not looking for everyone.",
@@ -280,7 +490,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "Nor are we looking for those",
@@ -294,7 +506,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "We are looking for people willing",
@@ -308,7 +522,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "If you found this fragment,",
@@ -328,7 +544,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "You looked beyond what was presented",
@@ -342,9 +560,12 @@ async function printFragment() {
         12
     );
 
+
     blank();
 
+
     await observeAnomaly();
+
 
     await printLine(
         "are not the same thing.",
@@ -352,7 +573,9 @@ async function printFragment() {
         12
     );
 
+
     blank();
+
 
     await printLine(
         "What you do with what you have found",
@@ -366,9 +589,13 @@ async function printFragment() {
         12
     );
 
+
     blank();
 
-    await systemLine("[END OF FRAGMENT]");
+
+    await systemLine(
+        "[END OF FRAGMENT]"
+    );
 
 }
 
@@ -381,86 +608,181 @@ async function startSequence() {
 
     await wait(600);
 
-    await systemLine("ECLIPSE ARCHIVE SYSTEM");
+
+    await systemLine(
+        "ECLIPSE ARCHIVE SYSTEM"
+    );
+
 
     blank();
 
-    await command("establish connection");
+
+    await command(
+        "establish connection"
+    );
+
 
     await wait(300);
 
-    await systemLine("SOURCE: UNKNOWN");
-    await systemLine("FILE: FRAGMENT_001");
-    await systemLine("STATUS: ENCRYPTED");
+
+    await systemLine(
+        "SOURCE: UNKNOWN"
+    );
+
+    await systemLine(
+        "FILE: FRAGMENT_001"
+    );
+
+    await systemLine(
+        "STATUS: ENCRYPTED"
+    );
+
 
     blank();
 
-    await command("initialize decryption");
+
+    await command(
+        "initialize decryption"
+    );
+
 
     blank();
+
 
     await progressBar();
 
-    blank();
-
-    await systemLine("BLOCK 0x04A1 ........ OK");
-    await systemLine("BLOCK 0x04A2 ........ OK");
-    await systemLine("BLOCK 0x04A3 ........ CORRUPTED");
-    await systemLine("BLOCK 0x04A4 ........ OK");
-    await systemLine("BLOCK 0x04A5 ........ OK");
 
     blank();
 
-    await command("verify integrity");
+
+    await systemLine(
+        "BLOCK 0x04A1 ........ OK"
+    );
+
+    await systemLine(
+        "BLOCK 0x04A2 ........ OK"
+    );
+
+    await systemLine(
+        "BLOCK 0x04A3 ........ CORRUPTED"
+    );
+
+    await systemLine(
+        "BLOCK 0x04A4 ........ OK"
+    );
+
+    await systemLine(
+        "BLOCK 0x04A5 ........ OK"
+    );
+
 
     blank();
 
-    await systemLine("INTEGRITY: 91.4%");
-    await systemLine("CORRUPTED SECTORS: 03");
+
+    await command(
+        "verify integrity"
+    );
+
 
     blank();
 
-    await command("attempt recovery");
+
+    await systemLine(
+        "INTEGRITY: 91.4%"
+    );
+
+    await systemLine(
+        "CORRUPTED SECTORS: 03"
+    );
+
 
     blank();
 
-    await systemLine("SECTOR 0x04A3 ........ PARTIAL");
-    await systemLine("SECTOR 0x0B51 ........ UNSTABLE");
-    await systemLine("SECTOR 0x0F21 ........ LOST");
+
+    await command(
+        "attempt recovery"
+    );
+
 
     blank();
 
-    await systemLine("WARNING: RECOVERY INCOMPLETE");
+
+    await systemLine(
+        "SECTOR 0x04A3 ........ PARTIAL"
+    );
+
+    await systemLine(
+        "SECTOR 0x0B51 ........ UNSTABLE"
+    );
+
+    await systemLine(
+        "SECTOR 0x0F21 ........ LOST"
+    );
+
 
     blank();
 
-    await command("mount fragment");
+
+    await systemLine(
+        "WARNING: RECOVERY INCOMPLETE"
+    );
+
+
+    blank();
+
+
+    await command(
+        "mount fragment"
+    );
+
 
     await wait(500);
 
-    await systemLine("MOUNTED.");
+
+    await systemLine(
+        "MOUNTED."
+    );
+
 
     blank();
 
-    await command("cat fragment_001.log");
+
+    await command(
+        "cat fragment_001.log"
+    );
+
 
     await wait(800);
 
+
     await printFragment();
+
 
     blank();
 
-    await command("verify residual data");
+
+    await command(
+        "verify residual data"
+    );
+
 
     await wait(400);
 
-    blank();
-
-    await systemLine("7 bytes unresolved.");
 
     blank();
 
-    await systemLine("> connection stable.");
+
+    await systemLine(
+        "7 bytes unresolved."
+    );
+
+
+    blank();
+
+
+    await systemLine(
+        "> connection stable."
+    );
 
 }
 
@@ -475,6 +797,7 @@ function accelerate() {
 
 }
 
+
 function normalSpeed() {
 
     speedMultiplier = 1;
@@ -483,13 +806,44 @@ function normalSpeed() {
 
 
 // PC
-document.addEventListener("keydown", accelerate);
-document.addEventListener("keyup", normalSpeed);
+
+document.addEventListener(
+    "keydown",
+    accelerate
+);
+
+document.addEventListener(
+    "keyup",
+    normalSpeed
+);
 
 
 // Android / táctil
-document.addEventListener("touchstart", accelerate);
-document.addEventListener("touchend", normalSpeed);
+
+document.addEventListener(
+    "touchstart",
+    accelerate
+);
+
+document.addEventListener(
+    "touchend",
+    normalSpeed
+);
+
+document.addEventListener(
+    "touchcancel",
+    normalSpeed
+);
+
+
+// -------------------------
+// CAMBIO DE TAMAÑO
+// -------------------------
+
+window.addEventListener(
+    "resize",
+    scrollTerminal
+);
 
 
 // -------------------------

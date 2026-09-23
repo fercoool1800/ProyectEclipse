@@ -6,7 +6,13 @@ html,
 body {
     margin: 0;
     padding: 0;
-    min-height: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+html {
+    background: #050505;
 }
 
 body {
@@ -19,18 +25,32 @@ body {
     justify-content: center;
 
     min-height: 100vh;
+    min-height: 100dvh;
 }
+
+
+/* -------------------------
+   TERMINAL
+------------------------- */
 
 .terminal {
     width: min(900px, 100%);
 
-    padding: clamp(24px, 5vw, 60px);
+    padding:
+        clamp(24px, 5vw, 60px)
+        clamp(24px, 5vw, 60px)
+        120px;
 
     font-size: clamp(14px, 1.8vw, 17px);
     line-height: 1.65;
 
     overflow-wrap: break-word;
 }
+
+
+/* -------------------------
+   LÍNEAS
+------------------------- */
 
 .line {
     min-height: 1em;
@@ -53,22 +73,30 @@ body {
     color: #eeeeee;
 }
 
+
+/* -------------------------
+   CORRUPCIÓN
+------------------------- */
+
 .corrupted {
     display: inline-block;
 
     animation: corruption 0.12s infinite;
 }
 
+
+/* -------------------------
+   CURSOR
+------------------------- */
+
 .cursor {
     display: inline-block;
 
-    margin-top: 8px;
+    vertical-align: baseline;
 
     animation: blink 0.8s steps(1) infinite;
 }
 
-
-/* Cursor */
 
 @keyframes blink {
 
@@ -84,7 +112,9 @@ body {
 }
 
 
-/* Corrupción */
+/* -------------------------
+   ANIMACIÓN DE CORRUPCIÓN
+------------------------- */
 
 @keyframes corruption {
 
@@ -110,12 +140,17 @@ body {
 }
 
 
-/* Android / pantallas pequeñas */
+/* -------------------------
+   ANDROID / PANTALLAS PEQUEÑAS
+------------------------- */
 
 @media (max-width: 600px) {
 
     .terminal {
-        padding: 22px 18px;
+        padding:
+            24px
+            18px
+            120px;
 
         font-size: 14px;
         line-height: 1.55;
