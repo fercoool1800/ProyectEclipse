@@ -97,6 +97,12 @@ body {
     animation: blink 0.8s steps(1) infinite;
 }
 
+/* Pausa temporal del cursor durante datos importantes */
+
+.cursor.paused {
+    animation-play-state: paused;
+    opacity: 1;
+}
 
 @keyframes blink {
 

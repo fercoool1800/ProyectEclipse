@@ -250,16 +250,28 @@ async function progressBar() {
 
 async function observeAnomaly() {
 
-    const line =
-        createLine("fragment");
+    // -------------------------
+    // FRASE CORRUPTA
+    // -------------------------
 
-    line.textContent =
-        "But looking and obs▓▓▓▓▓";
+    await printLine(
+        "But looking and obs▓▓▓▓▓",
+        "fragment",
+        12
+    );
 
-    scrollTerminal();
+    await printLine(
+        "are not the same thing.",
+        "fragment",
+        12
+    );
 
     await wait(900);
 
+
+    // -------------------------
+    // DETECCIÓN DEL SECTOR
+    // -------------------------
 
     await systemLine(
         "> unstable sector detected."
@@ -269,54 +281,82 @@ async function observeAnomaly() {
         "> attempting reconstruction..."
     );
 
-
     blank();
 
+    await wait(350);
+
+
+    // -------------------------
+    // RECONSTRUCCIÓN
+    // -------------------------
 
     const recovery =
         createLine("corrupted");
 
+    recovery.appendChild(cursor);
+
+
+    const reconstruction = [
+        ["0x04A3  obs▓▓▓▓▓", 420],
+        ["0x04A3  ob▓e▓▓▓", 300],
+        ["0x04A3  ▓bser▓▓", 350],
+        ["0x04A3  obse▓v▓", 380]
+    ];
+
+
+    for (const [text, duration] of reconstruction) {
+
+        recovery.textContent = text;
+
+        recovery.appendChild(cursor);
+
+        scrollTerminal();
+
+        await wait(duration);
+    }
+
+
+    // -------------------------
+    // DATO RECUPERADO
+    // -------------------------
+
+    recovery.classList.remove(
+        "corrupted"
+    );
+
+    recovery.textContent =
+        "0x04A3  OBSERVE";
+
+    recovery.appendChild(cursor);
+
 
     /*
-        Movemos el cursor a la línea
-        que se está reconstruyendo.
+        El cursor deja de parpadear.
+
+        Durante un instante todo queda
+        completamente estable.
     */
 
-    recovery.appendChild(cursor);
-
-
-    recovery.textContent =
-        "obs▓▓▓▓▓";
-
-    recovery.appendChild(cursor);
+    cursor.classList.add("paused");
 
     scrollTerminal();
 
-    await wait(500);
+    await wait(650);
+
+
+    // -------------------------
+    // EL DATO VUELVE A DEGRADARSE
+    // -------------------------
+
+    cursor.classList.remove("paused");
+
+    recovery.classList.add(
+        "corrupted"
+    );
 
 
     recovery.textContent =
-        "obse▓▓▓";
-
-    recovery.appendChild(cursor);
-
-    scrollTerminal();
-
-    await wait(500);
-
-
-    recovery.textContent =
-        "OBSERVE";
-
-    recovery.appendChild(cursor);
-
-    scrollTerminal();
-
-    await wait(850);
-
-
-    recovery.textContent =
-        "obser▓▓";
+        "0x04A3  ob▓erv▓";
 
     recovery.appendChild(cursor);
 
@@ -326,23 +366,34 @@ async function observeAnomaly() {
 
 
     recovery.textContent =
-        "observing";
+        "0x04A3  ▓▓serv▓";
 
     recovery.appendChild(cursor);
 
-    recovery.classList.remove(
-        "corrupted"
-    );
+    scrollTerminal();
+
+    await wait(220);
+
+
+    recovery.textContent =
+        "0x04A3  ▓▓▓▓▓▓▓";
+
+    recovery.appendChild(cursor);
 
     scrollTerminal();
 
     await wait(300);
 
 
+    // -------------------------
+    // FIN DE RECONSTRUCCIÓN
+    // -------------------------
+
     output.appendChild(cursor);
 
-    scrollTerminal();
-
+    recovery.classList.remove(
+        "corrupted"
+    );
 
     blank();
 
@@ -352,11 +403,10 @@ async function observeAnomaly() {
     );
 
     await systemLine(
-        "> continuing..."
+        "> recovered data discarded."
     );
 
 }
-
 
 // -------------------------
 // FRAGMENTO
@@ -566,12 +616,6 @@ async function printFragment() {
 
     await observeAnomaly();
 
-
-    await printLine(
-        "are not the same thing.",
-        "fragment",
-        12
-    );
 
 
     blank();
