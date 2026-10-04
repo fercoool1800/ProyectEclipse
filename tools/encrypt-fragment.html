@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Eclipse Archive Encryptor</title>
+
+    <style>
+
+        body {
+            background: #111;
+            color: #eee;
+
+            font-family: monospace;
+
+            padding: 40px;
+        }
+
+        textarea,
+        input {
+
+            width: 100%;
+
+            background: #050505;
+            color: #eee;
+
+            border: 1px solid #555;
+
+            padding: 10px;
+
+            margin-bottom: 20px;
+
+            font-family: monospace;
+        }
+
+        textarea {
+            min-height: 300px;
+        }
+
+        button {
+
+            padding: 10px 20px;
+
+            font-family: monospace;
+
+            cursor: pointer;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<h1>ECLIPSE ARCHIVE ENCRYPTOR</h1>
+
+
+<label>
+    Access key
+</label>
+
+<input
+    id="password"
+    type="password"
+>
+
+
+<label>
+    Fragment JSON
+</label>
+
+<textarea id="content"></textarea>
+
+
+<button id="encrypt">
+    Encrypt
+</button>
+
+
+<h2>Encrypted package</h2>
+
+<textarea
+    id="result"
+    readonly
+></textarea>
+
+
+<script>
+
+const encoder =
+    new TextEncoder();
+
+
+function bytesToBase64(bytes) {
+
+    let binary = "";
+
+
+    for (const byte of bytes) {
+
+        binary +=
+            String.fromCharCode(byte);
+    }
+
+
+    return btoa(binary);
+}
+
+
+async function deriveKey(
+    password,
+    salt,
+    iterations
+) {
+
+    const material =
+        await crypto.subtle.importKey(
+
+            "raw",
+
+            encoder.encode(password),
+
+            {
+                name: "PBKDF2"
+            },
+
+            false,
+
+            ["deriveKey"]
+
+        );
+
+
+    return crypto.subtle.deriveKey(
+
+        {
+            name: "PBKDF2",
+
+            salt: salt,
+
+            iterations: iterations,
+
+            hash: "SHA-256"
+        },
+
+        material,
+
+        {
+            name: "AES-GCM",
+
+            length: 256
+        },
+
+        false,
+
+        ["encrypt"]
+
+    );
+}
+
+
+async function encrypt() {
+
+    const password =
+        document
+            .getElementById("password")
+            .value;
+
+
+    const content =
+        document
+            .getElementById("content")
+            .value;
+
+
+    if (!password || !content) {
+
+        alert(
+            "Password and content are required."
+        );
+
+        return;
+    }
+
+
+    /*
+        Primero comprobamos que realmente
+        introdujiste JSON válido.
+    */
+
+    let parsed;
+
+
+    try {
+
+        parsed =
+            JSON.parse(content);
+
+    }
+
+    catch {
+
+        alert(
+            "Fragment content is not valid JSON."
+        );
+
+        return;
+    }
+
+
+    /*
+        Lo volvemos a serializar para
+        obtener una representación limpia.
+    */
+
+    const plaintext =
+        JSON.stringify(parsed);
+
+
+    // Salt aleatorio
+
+    const salt =
+        crypto.getRandomValues(
+            new Uint8Array(16)
+        );
+
+
+    // IV aleatorio para AES-GCM
+
+    const iv =
+        crypto.getRandomValues(
+            new Uint8Array(12)
+        );
+
+
+    /*
+        PBKDF2 hace que probar contraseñas
+        tenga un coste computacional.
+
+        Este valor puede ajustarse más adelante.
+    */
+
+    const iterations =
+        300000;
+
+
+    const key =
+        await deriveKey(
+            password,
+            salt,
+            iterations
+        );
+
+
+    const ciphertext =
+        await crypto.subtle.encrypt(
+
+            {
+                name: "AES-GCM",
+                iv: iv
+            },
+
+            key,
+
+            encoder.encode(plaintext)
+
+        );
+
+
+    const encryptedPackage = {
+
+        version: 1,
+
+        algorithm: "AES-256-GCM",
+
+        kdf: "PBKDF2-SHA256",
+
+        iterations: iterations,
+
+        salt:
+            bytesToBase64(salt),
+
+        iv:
+            bytesToBase64(iv),
+
+        data:
+            bytesToBase64(
+                new Uint8Array(ciphertext)
+            )
+
+    };
+
+
+    document
+        .getElementById("result")
+        .value =
+            JSON.stringify(
+                encryptedPackage,
+                null,
+                2
+            );
+}
+
+
+document
+    .getElementById("encrypt")
+    .addEventListener(
+        "click",
+        encrypt
+    );
+
+</script>
+
+
+</body>
+
+</html>
