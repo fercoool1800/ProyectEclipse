@@ -16,8 +16,14 @@ const EclipseCommands = (() => {
             }
             await sequences.observe();
             preambleComplete = true;
-        }
-    };
+
+            await terminal.blank();
+            await terminal.system('REDIRECTING TO PROTOCOL I...');
+
+            await terminal.wait(1500);
+
+            window.location.assign("protocol/001/");
+    }}
     function updateInputCursor() {
         if (!input || !inputCursor) return;
         // A narrow input keeps the block cursor immediately after typed text.

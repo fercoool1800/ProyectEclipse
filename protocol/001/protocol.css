@@ -1,0 +1,24 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body { margin: 0; min-height: 100vh; min-height: 100dvh; background: #000; color: #fff; font-family: Consolas, 'Courier New', monospace; }
+.shell { width: min(100%, 850px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding: clamp(28px, 6vh, 54px) 24px 24px; display: flex; flex-direction: column; }
+.brand { font-size: 1.1rem; font-weight: 700; letter-spacing: .34em; text-align: center; }
+.brand-rule { display: block; width: 46px; height: 1px; background: #777; margin: 24px auto 0; }
+.protocol { width: 100%; max-width: 660px; margin: auto; padding: 60px 0; text-align: center; }
+.eyebrow { color: #8e8e8e; letter-spacing: .2em; font-size: .75rem; margin: 0 0 28px; }
+.status { display: inline-flex; align-items: center; gap: 9px; color: #c5c5c5; font-size: .72rem; letter-spacing: .12em; margin: 0 0 20px; }
+.status-dot { display: inline-block; width: 5px; height: 5px; background: #b8b8b8; border-radius: 50%; }
+h1 { font-size: clamp(1.25rem, 4vw, 2rem); letter-spacing: .12em; font-weight: 500; margin: 0 0 24px; }
+.description { color: #999; font-size: .78rem; line-height: 1.9; letter-spacing: .035em; margin: 0 auto 45px; }
+.countdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.unit { min-width: 0; border: 1px solid #333; background: #0c0c0c; padding: 22px 8px 18px; display: flex; flex-direction: column; gap: 12px; }
+.unit strong { font-size: clamp(1.65rem, 6vw, 3.3rem); font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
+.unit span { font-size: .65rem; letter-spacing: .1em; color: #888; }
+.deadline { margin: 27px 0 0; color: #777; font-size: .68rem; letter-spacing: .08em; line-height: 1.8; }
+.deadline span { color: #bbb; }
+.footnote { color: #777; font-size: .73rem; letter-spacing: .08em; margin: 48px 0 0; }
+footer { color: #555; text-align: center; font-size: .65rem; letter-spacing: .12em; }
+footer span { margin: 0 7px; }
+@media (max-width: 480px) { .shell { padding: 26px 14px 20px; } .protocol { padding: 45px 0; } .description { font-size: .69rem; } .countdown { gap: 5px; } .unit { padding: 18px 3px 14px; gap: 12px; } .unit span { font-size: .52rem; letter-spacing: 0; } .deadline { font-size: .6rem; } .footnote { font-size: .64rem; line-height: 1.7; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
