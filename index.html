@@ -4,35 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eclipse</title>
-
     <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-
-    <div class="container">
-
+    <main class="container">
         <h1>ECLIPSE</h1>
-
-        <p>
-            <div class="typing-container">
-                <span class="typing">SIGNAL DETECTED.
-
-                </span>
-                <span class="cursor">█</span>
+        <section id="terminal" aria-label="Eclipse terminal">
+            <div id="terminal-output" role="log" aria-live="off"></div>
+            <span id="cursor" class="cursor" aria-hidden="true">█</span>
+            <div class="command-row">
+                <label for="command">&gt;</label>
+                <input type="text" id="command" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" disabled>
+                <span id="input-cursor" class="cursor" aria-hidden="true" hidden>█</span>
             </div>
-        </p>
-        
-
-        <div id="terminal">
-            <span>> </span>
-            <input type="text" id="command">
-        </div>
-        <div id="error-message"></div>
-
-    </div>
-
-    <script src="js/script.js"></script>
-
+        </section>
+    </main>
+    <script src="js/terminal/terminal-engine.js"></script>
+    <script src="js/terminal/effects.js"></script>
+    <script src="js/terminal/sequences.js"></script>
+    <script src="js/terminal/commands.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            EclipseTerminal.init();
+            EclipseCommands.init();
+            EclipseCommands.setInputEnabled(false);
+            try {
+                await EclipseTerminal.run(() => EclipseSequences.boot());
+            } finally {
+                EclipseCommands.setInputEnabled(true);
+            }
+        });
+    </script>
 </body>
 </html>
