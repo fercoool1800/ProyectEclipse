@@ -10,23 +10,24 @@ const EclipseCommands = (() => {
         status: () => sequences.status(),
         archive: () => sequences.archive(),
         observe: async () => {
-            if (preambleComplete) {
-                await terminal.system('PREAMBLE ALREADY COMPLETE');
-                return;
-            }
-            await sequences.observe();
-            preambleComplete = true;
 
-            await terminal.blank();
-            await terminal.system('REDIRECTING TO PROTOCOL I...');
+    if (preambleComplete) {
+        await terminal.system('PREAMBLE ALREADY COMPLETE');
+        return;
+    }
 
-            await terminal.wait(1500);
+    await sequences.observe();
 
-            window.location.href = new URL(
-            "protocol/001/",
-            document.baseURI
-            ).href;
-    }}
+    preambleComplete = true;
+
+    await terminal.blank();
+    await terminal.system('INITIALIZING PROTOCOL I...');
+    await terminal.system('ESTABLISHING CONNECTION...');
+
+    await terminal.wait(1500);
+
+    window.location.assign('protocol/001/');
+
     function updateInputCursor() {
         if (!input || !inputCursor) return;
         // A narrow input keeps the block cursor immediately after typed text.
