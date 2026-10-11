@@ -22,7 +22,10 @@ const EclipseCommands = (() => {
 
             await terminal.wait(1500);
 
-            window.location.assign("protocol/001/");
+            window.location.href = new URL(
+            "protocol/001/",
+            document.baseURI
+            ).href;
     }}
     function updateInputCursor() {
         if (!input || !inputCursor) return;
