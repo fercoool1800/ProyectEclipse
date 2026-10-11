@@ -1,90 +1,290 @@
+
 const EclipseCommands = (() => {
+
+    // ================================================
+    // DEPENDENCIES
+    // ================================================
+
     const terminal = EclipseTerminal;
     const sequences = EclipseSequences;
+
+    // ================================================
+    // CONFIGURATION
+    // ================================================
+
+    const config = {
+        protocolUrl: "protocol/001/",
+        redirectDelay: 1500
+    };
+
+    // ================================================
+    // STATE
+    // ================================================
+
     let input = null;
-    let initialized = false;
     let inputCursor = null;
+    let initialized = false;
     let preambleComplete = false;
+    let redirecting = false;
+
+    // ================================================
+    // INPUT CURSOR
+    // ================================================
+
+    function updateInputCursor() {
+
+        if (!input || !inputCursor) return;
+
+        const length = Array.from(input.value).length;
+
+        input.style.width =
+            `${Math.max(1, length + 0.3)}ch`;
+    }
+
+    // ================================================
+    // INPUT CONTROL
+    // ================================================
+
+    function setInputEnabled(enabled) {
+
+        if (!input) return;
+
+        const active = enabled && !redirecting;
+
+        input.disabled = !active;
+
+        if (inputCursor) {
+            inputCursor.hidden = !active;
+        }
+
+        updateInputCursor();
+
+        if (active) {
+            input.focus({ preventScroll: true });
+        }
+    }
+
+    // ================================================
+    // COMMAND NORMALIZATION
+    // ================================================
+
+    function normalizeCommand(value) {
+        return String(value).trim().toLowerCase();
+    }
+
+    // ================================================
+    // PROTOCOL REDIRECTION
+    // ================================================
+
+    async function redirectToProtocol() {
+
+        redirecting = true;
+
+        terminal.blank();
+
+        await terminal.system(
+            "INITIALIZING PROTOCOL I..."
+        );
+
+        await terminal.system(
+            "ESTABLISHING CONNECTION..."
+        );
+
+        await terminal.wait(config.redirectDelay);
+
+        const destination = new URL(
+            config.protocolUrl,
+            document.baseURI
+        );
+
+        window.location.assign(destination.href);
+    }
+
+    // ================================================
+    // OBSERVE DIRECTIVE
+    // ================================================
+
+    async function handleObserve() {
+
+        if (preambleComplete) {
+
+            await terminal.system(
+                "PREAMBLE ALREADY COMPLETE"
+            );
+
+            return;
+        }
+
+        await sequences.observe();
+
+        preambleComplete = true;
+
+        await redirectToProtocol();
+    }
+
+    // ================================================
+    // COMMAND REGISTRY
+    // ================================================
+
     const commands = {
         help: () => sequences.help(),
         status: () => sequences.status(),
         archive: () => sequences.archive(),
-        observe: async () => {
-
-    if (preambleComplete) {
-        await terminal.system('PREAMBLE ALREADY COMPLETE');
-        return;
-    }
-
-    await sequences.observe();
-
-    preambleComplete = true;
-
-    await terminal.blank();
-    await terminal.system('INITIALIZING PROTOCOL I...');
-    await terminal.system('ESTABLISHING CONNECTION...');
-
-    await terminal.wait(1500);
-
-    window.location.assign('protocol/001/');
-        }
+        observe: handleObserve
     };
-    function updateInputCursor() {
-        if (!input || !inputCursor) return;
-        // A narrow input keeps the block cursor immediately after typed text.
-        input.style.width = `${Math.max(1, Array.from(input.value).length + 0.3)}ch`;
-    }
-    function setInputEnabled(enabled) {
-        if (!input) return;
-        input.disabled = !enabled;
-        if (inputCursor) inputCursor.hidden = !enabled;
-        updateInputCursor();
-        if (enabled) input.focus({ preventScroll: true });
-    }
-    function normalizeCommand(value) { return String(value).trim().toLowerCase(); }
+
+    // ================================================
+    // COMMAND EXECUTION
+    // ================================================
+
     async function execute(value) {
+
         const command = normalizeCommand(value);
-        if (!command || terminal.isBusy()) return false;
+
+        if (
+            !command ||
+            terminal.isBusy() ||
+            redirecting
+        ) {
+            return false;
+        }
+
         return terminal.run(async () => {
+
             setInputEnabled(false);
+
             EclipseEffects.stopAnomaly();
+
             try {
+
                 await terminal.command(command);
+
                 terminal.blank();
-                if (Object.prototype.hasOwnProperty.call(commands, command)) {
+
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        commands,
+                        command
+                    )
+                ) {
+
                     await commands[command]();
+
                 } else {
-                    await terminal.system('COMMAND NOT RECOGNIZED');
+
+                    await terminal.system(
+                        "COMMAND NOT RECOGNIZED"
+                    );
                 }
-                terminal.blank();
+
+                if (!redirecting) {
+                    terminal.blank();
+                }
+
             } catch (error) {
-                console.error('Eclipse command error:', error);
-                await terminal.system('SYSTEM ERROR: EXECUTION INTERRUPTED');
+
+                console.error(
+                    "Eclipse command error:",
+                    error
+                );
+
+                redirecting = false;
+
+                await terminal.system(
+                    "SYSTEM ERROR: EXECUTION INTERRUPTED"
+                );
+
             } finally {
-                setInputEnabled(true);
-                terminal.scroll();
+
+                if (!redirecting) {
+                    setInputEnabled(true);
+                    terminal.scroll();
+                }
             }
         });
     }
+
+    // ================================================
+    // KEYBOARD HANDLER
+    // ================================================
+
     function handleKeydown(event) {
-        if (event.key !== 'Enter' || event.isComposing) return;
+
+        if (
+            event.key !== "Enter" ||
+            event.isComposing
+        ) {
+            return;
+        }
+
         event.preventDefault();
-        if (terminal.isBusy()) return;
+
+        if (
+            terminal.isBusy() ||
+            redirecting
+        ) {
+            return;
+        }
+
         const value = input.value;
+
         if (!value.trim()) return;
-        input.value = '';
+
+        input.value = "";
+
         updateInputCursor();
+
         void execute(value);
     }
+
+    // ================================================
+    // INITIALIZATION
+    // ================================================
+
     function init() {
+
         if (initialized) return;
-        input = document.getElementById('command');
-        inputCursor = document.getElementById('input-cursor');
-        if (!input || !inputCursor) throw new Error('EclipseCommands: command input/cursor not found.');
-        input.addEventListener('input', updateInputCursor);
+
+        input = document.getElementById("command");
+
+        inputCursor = document.getElementById(
+            "input-cursor"
+        );
+
+        if (!input || !inputCursor) {
+
+            throw new Error(
+                "EclipseCommands: command input/cursor not found."
+            );
+        }
+
+        input.addEventListener(
+            "input",
+            updateInputCursor
+        );
+
+        input.addEventListener(
+            "keydown",
+            handleKeydown
+        );
+
         updateInputCursor();
-        input.addEventListener('keydown', handleKeydown);
+
         initialized = true;
     }
-    return { init, execute, setInputEnabled, get preambleComplete() { return preambleComplete; } };
+
+    // ================================================
+    // PUBLIC API
+    // ================================================
+
+    return {
+        init,
+        execute,
+        setInputEnabled,
+
+        get preambleComplete() {
+            return preambleComplete;
+        }
+    };
+
 })();
