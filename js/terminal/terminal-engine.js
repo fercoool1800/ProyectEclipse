@@ -1,22 +1,54 @@
 const EclipseTerminal = (() => {
-    const config = { typingDelay: 22, systemDelay: 12, bottomMargin: 90 };
+    const config = { typingDelay: 22, systemDelay: 12, bottomMargin: 24 };
     let busy = false;
     let speedMultiplier = 1;
     let output = null;
     let cursor = null;
     let inputRow = null;
+    let input = null;
     let initialized = false;
+    let scrollScheduled = false;
+    let focusTimers = [];
 
     function init() {
         if (initialized) return;
         output = document.getElementById('terminal-output');
         cursor = document.getElementById('cursor');
         inputRow = document.querySelector('.command-row');
-        if (!output || !cursor || !inputRow) {
+        input = document.getElementById('command');
+        if (!output || !cursor || !inputRow || !input) {
             throw new Error('EclipseTerminal: missing DOM elements.');
         }
         cursor.hidden = true;
-        window.addEventListener('resize', scroll);
+
+        // The entire command row is tappable, while input width remains dynamic.
+        inputRow.addEventListener('click', () => {
+            if (input.disabled || busy) return;
+            input.focus({ preventScroll: true });
+            scheduleScroll();
+        });
+        input.addEventListener('focus', () => {
+            scheduleScroll();
+            // Mobile keyboards animate in; correct again as the viewport settles.
+            focusTimers.forEach(clearTimeout);
+            focusTimers = [80, 200, 400, 700, 1000].map(ms =>
+                setTimeout(() => {
+                    if (document.activeElement === input) scheduleScroll();
+                }, ms)
+            );
+        });
+        input.addEventListener('blur', () => {
+            focusTimers.forEach(clearTimeout);
+            focusTimers = [];
+            document.documentElement.style.removeProperty('--keyboard-clearance');
+        });
+
+        window.addEventListener('resize', scheduleScroll);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scheduleScroll);
+            window.visualViewport.addEventListener('scroll', scheduleScroll);
+        }
+
         document.addEventListener('touchstart', () => { speedMultiplier = 3; }, { passive: true });
         document.addEventListener('touchend', () => { speedMultiplier = 1; }, { passive: true });
         document.addEventListener('touchcancel', () => { speedMultiplier = 1; }, { passive: true });
@@ -25,12 +57,35 @@ const EclipseTerminal = (() => {
 
     function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+    function scheduleScroll() {
+        if (scrollScheduled) return;
+        scrollScheduled = true;
+        requestAnimationFrame(() => {
+            scrollScheduled = false;
+            scroll();
+        });
+    }
+
     function scroll() {
         const target = !cursor.hidden ? cursor : inputRow;
         if (!target) return;
+        const viewport = window.visualViewport;
+        const visibleBottom = viewport
+            ? viewport.offsetTop + viewport.height
+            : window.innerHeight;
         const rect = target.getBoundingClientRect();
-        const limit = window.innerHeight - config.bottomMargin;
-        if (rect.bottom > limit) window.scrollBy(0, rect.bottom - limit);
+        const overflow = rect.bottom - (visibleBottom - config.bottomMargin);
+        // Give the page enough scrollable room even when the terminal is short.
+        // visualViewport is smaller than the layout viewport while the keyboard is up.
+        const keyboardHeight = viewport
+            ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+            : 0;
+        if (document.activeElement === input) {
+            document.documentElement.style.setProperty(
+                '--keyboard-clearance', `${Math.ceil(keyboardHeight)}px`
+            );
+        }
+        if (overflow > 0) window.scrollBy({ top: overflow, behavior: 'instant' });
     }
 
     function showOutputCursor(line) {
@@ -61,8 +116,11 @@ const EclipseTerminal = (() => {
         if (!line || !output.contains(line)) return;
         const active = cursor.parentNode === line && !cursor.hidden;
         line.textContent = String(text);
-        if (active) line.appendChild(cursor);
-        scroll();
+        if (active) {
+            line.appendChild(cursor);
+            scroll();
+        }
+        // A persistent anomaly updating an old line must not scroll the page.
     }
 
     async function print(text, className = '', delay = config.typingDelay) {

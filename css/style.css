@@ -24,13 +24,31 @@ h1 { text-align: center; font-size: 1.6rem; letter-spacing: .3em; margin: 0 0 44
 .cursor[hidden] { display: none !important; }
 .cursor.paused { animation-play-state: paused; opacity: 1; }
 @keyframes blink { 50% { opacity: 0; } }
-.command-row { display: flex; align-items: baseline; gap: 0; margin-top: 4px; min-width: 0; }
-.command-row label { margin-right: 1ch; }
+/* Larger touch target, without changing the narrow input's cursor geometry. */
+.command-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 48px;
+    margin-top: 4px;
+    min-width: 0;
+    cursor: text;
+    touch-action: manipulation;
+}
+.command-row label { margin-right: 1ch; flex: 0 0 auto; cursor: text; }
 #input-cursor { flex: 0 0 auto; }
-.command-row label { flex: 0 0 auto; }
 #command {
-    width: 1ch; min-width: 1ch; max-width: calc(100% - 4ch); padding: 0; border: 0; outline: 0;
-    background: transparent; color: #fff; font: inherit; caret-color: transparent;
+    width: 1ch;
+    min-width: 1ch;
+    max-width: calc(100% - 4ch);
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: max(16px, 1em);
+    caret-color: transparent;
 }
 #command:disabled { opacity: .4; }
 #command::selection { background: #777; color: #fff; }
@@ -39,6 +57,7 @@ h1 { text-align: center; font-size: 1.6rem; letter-spacing: .3em; margin: 0 0 44
     h1 { font-size: 1.35rem; margin-bottom: 32px; }
     #terminal { font-size: 13px; }
 }
-@media (prefers-reduced-motion: reduce) {
-    .cursor { animation: none; }
-}
+@media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+
+/* Additional scroll range while the mobile keyboard covers the viewport. */
+.container { padding-bottom: calc(100px + var(--keyboard-clearance, 0px)); }
